@@ -1,11 +1,10 @@
 import { useNavigate } from "react-router-dom";
 
 function LoginScreen() {
-
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const handleLogin = () => {
-    navigate("/dashboard"); 
+    navigate("/dashboard");
   };
 
   return (
