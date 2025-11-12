@@ -1,4 +1,13 @@
+import { useNavigate } from "react-router-dom";
+
 function LoginScreen() {
+
+    const navigate = useNavigate(); // ✅ create navigate function here
+
+  const handleLogin = () => {
+    navigate("/dashboard"); // ✅ use it here to redirect
+  };
+
   return (
     <div className="bg-gradient-to-r from-blue-700 to-blue-500 w-screen h-screen p-6 flex flex-col justify-center overflow-hidden">
       <div className="grid md:grid-cols-2 justify-center items-center h-full px-8 md:gap-8 gap-16">
@@ -14,6 +23,7 @@ function LoginScreen() {
           <div className="mt-12">
             <button
               type="button"
+              onClick={handleLogin}
               className="px-6 py-2.5 text-base rounded-md tracking-wider font-semibold outline-none border border-white bg-white text-slate-900 hover:bg-transparent hover:text-white transition-all duration-300 cursor-pointer"
             >
               Login
