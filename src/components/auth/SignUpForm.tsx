@@ -27,6 +27,13 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
+  // Unique toast IDs
+  const firstNameToastId = "firstNameError";
+  const lastNameToastId = "lastNameError";
+  const emailToastId = "emailError";
+  const passwordToastId = "passwordError";
+  const termsToastId = "termsError";
+
   // VALIDATION HELPERS
   const isValidEmail = (email: string) =>
     /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email);
@@ -42,37 +49,51 @@ export default function SignUpForm() {
 
     // First Name required
     if (!firstName.trim()) {
-      return toast.error("Please enter your first name.");
+      return toast.error("Please enter your first name.", {
+        id: firstNameToastId,
+      });
     }
 
     // First Name must be letters
     if (!isValidName(firstName)) {
-      return toast.error("First name must contain only letters.");
+      return toast.error("First name must contain only letters.", {
+        id: firstNameToastId,
+      });
     }
 
     // Last Name optional, but if filled → letters only
     if (lastName.trim() && !isValidName(lastName)) {
-      return toast.error("Last name can contain only letters.");
+      return toast.error("Last name can contain only letters.", {
+        id: lastNameToastId,
+      });
     }
 
     if (!email.trim()) {
-      return toast.error("Please enter your email address.");
+      return toast.error("Please enter your email address.", {
+        id: emailToastId,
+      });
     }
 
     if (!isValidEmail(email)) {
-      return toast.error("Please enter a valid email address.");
+      return toast.error("Please enter a valid email address.", {
+        id: emailToastId,
+      });
     }
 
     if (!password.trim()) {
-      return toast.error("Please enter a password.");
+      return toast.error("Please enter a password.", { id: passwordToastId });
     }
 
     if (!isValidPassword(password)) {
-      return toast.error("Password must be at least 6 characters.");
+      return toast.error("Password must be at least 6 characters.", {
+        id: passwordToastId,
+      });
     }
 
     if (!isChecked) {
-      return toast.error("You must accept Terms & Conditions.");
+      return toast.error("You must accept Terms & Conditions.", {
+        id: termsToastId,
+      });
     }
 
     const toastId = toast.loading("Creating your account...");
