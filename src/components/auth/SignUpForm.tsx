@@ -6,12 +6,16 @@ import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { useNavigate } from "react-router";
 
-import { updateProfile } from "firebase/auth";
-
+// import { updateProfile } from "firebase/auth";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+
+//for firebase auth and firestore
 import { auth } from "../../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
+
+//for toast notifications
+import { toast } from "react-hot-toast";
 
 export default function SignUpForm() {
   const navigate = useNavigate();
@@ -23,32 +27,68 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
+  // VALIDATION HELPERS
+  const isValidEmail = (email: string) =>
+    /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email);
+
+  const isValidName = (name: string) => /^[A-Za-z\s]+$/.test(name); // letters + space only
+
+  const isValidPassword = (password: string) => password.length >= 6;
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("[signup] Triggered", { email, firstName, lastName });
+
+    // VALIDATION CHECKS
+
+    // First Name required
+    if (!firstName.trim()) {
+      return toast.error("Please enter your first name.");
+    }
+
+    // First Name must be letters
+    if (!isValidName(firstName)) {
+      return toast.error("First name must contain only letters.");
+    }
+
+    // Last Name optional, but if filled → letters only
+    if (lastName.trim() && !isValidName(lastName)) {
+      return toast.error("Last name can contain only letters.");
+    }
+
+    if (!email.trim()) {
+      return toast.error("Please enter your email address.");
+    }
+
+    if (!isValidEmail(email)) {
+      return toast.error("Please enter a valid email address.");
+    }
+
+    if (!password.trim()) {
+      return toast.error("Please enter a password.");
+    }
+
+    if (!isValidPassword(password)) {
+      return toast.error("Password must be at least 6 characters.");
+    }
+
+    if (!isChecked) {
+      return toast.error("You must accept Terms & Conditions.");
+    }
+
+    const toastId = toast.loading("Creating your account...");
 
     try {
-      // 1) create auth user
+      // 1) Create Firebase Auth User
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+
       const user = userCredential.user;
-      console.log("[signup] Auth created:", {
-        uid: user.uid,
-        email: user.email,
-      });
 
-      // optional: set displayName in auth profile
-      try {
-        await updateProfile(user, { displayName: `${firstName} ${lastName}` });
-        console.log("[signup] Auth profile updated (displayName).");
-      } catch (updErr) {
-        console.warn("[signup] updateProfile failed:", updErr);
-      }
+      // 2) Save Firestore User Document
 
-      // 2) save user doc in Firestore
       const docRef = doc(db, "users", user.uid);
       const payload = {
         firstName,
@@ -57,30 +97,47 @@ export default function SignUpForm() {
         createdAt: new Date().toISOString(),
         ableToLogin: false,
       };
+
       await setDoc(docRef, payload);
-      console.log("[signup] Firestore write success:", {
-        docPath: `users/${user.uid}`,
-        payload,
+
+      toast.success("Signup successful! Please wait for admin approval.", {
+        id: toastId,
       });
 
-      // final confirmation
-      console.log("[signup] COMPLETE — user signed up and stored");
-
-      // Clear form fields
+      // Clear form
       setEmail("");
       setPassword("");
       setFirstName("");
       setLastName("");
 
-      // Redirect to login page
+      // Redirect
       navigate("/signin");
     } catch (error: any) {
-      console.error("[signup] Signup error:", error);
-      // friendly UI message
-      if (error.code === "auth/email-already-in-use") {
-        alert("Email already exists. Please sign in.");
-      } else {
-        alert(error.message || "Signup failed");
+      // Remove loading toast
+      toast.dismiss(toastId);
+
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          navigate("/signin");
+          return toast.error("Email already exists. Please sign in.");
+
+        case "auth/invalid-email":
+          return toast.error("Please enter a valid email address.mmmmmmmmmmmm");
+
+        case "auth/weak-password":
+          return toast.error("Password must be at least 6 characters.");
+
+        case "auth/network-request-failed":
+          return toast.error("Network error. Check your internet connection.");
+
+        case "auth/operation-not-allowed":
+          return toast.error("Email/password login is disabled on the server.");
+
+        case "auth/too-many-requests":
+          return toast.error("Too many attempts. Try again later.");
+
+        default:
+          return toast.error("Something went wrong. Please try again.");
       }
     }
   };
@@ -178,9 +235,7 @@ export default function SignUpForm() {
                   </div>
                   {/* <!-- Last Name --> */}
                   <div className="sm:col-span-1">
-                    <Label>
-                      Last Name<span className="text-error-500">*</span>
-                    </Label>
+                    <Label>Last Name</Label>
                     <Input
                       type="text"
                       id="lname"
