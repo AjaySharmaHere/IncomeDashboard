@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
-// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
@@ -26,11 +26,11 @@ export default function App() {
   return (
     <>
       <Router>
+        <Toaster position="top-center" reverseOrder={false} />
         <ScrollToTop />
         <Routes>
           <Route index path="/" element={<LoginScreen />} />
           <Route element={<AppLayout />}>
-          
             <Route path="/home" element={<Home />} />
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
