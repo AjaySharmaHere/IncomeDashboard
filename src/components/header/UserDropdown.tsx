@@ -1,10 +1,38 @@
-import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
 
+import { useEffect, useState } from "react";
+import { auth, db } from "../../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
+
+interface UserData {
+  name?: string;
+  email?: string;
+  // add other fields if needed
+}
+
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!auth.currentUser) return; // redirect if not logged in
+
+      const userDocRef = doc(db, "users", auth.currentUser.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        setUserData(userSnap.data() as UserData);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (!userData) return <p>Loading...</p>;
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -54,7 +82,9 @@ export default function UserDropdown() {
             Musharof Chowdhury
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            randomuser@pimjo.co
+            <h1>Welcome, {userData.name || "User"}!</h1>
+            <p>Your email: {userData.email}</p>
           </span>
         </div>
 

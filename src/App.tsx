@@ -21,6 +21,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import LoginScreen from "./components/login-screen";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 export default function App() {
   return (
@@ -31,7 +32,14 @@ export default function App() {
         <Routes>
           <Route index path="/" element={<LoginScreen />} />
           <Route element={<AppLayout />}>
-            <Route path="/home" element={<Home />} />
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />

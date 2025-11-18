@@ -6,12 +6,18 @@ import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { toast } from "react-hot-toast";
 
+import { auth, db } from "../../firebase/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [isLoading, setIsLoading] = useState(false);
 
   // VALIDATION HELPERS
   const isValidEmail = (email: string) =>
@@ -20,22 +26,22 @@ export default function SignInForm() {
 
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Unique toast IDs
     const emailToastId = "emailError";
     const passwordToastId = "passwordError";
 
-    if (!email.trim()) {
-      return toast.error("Please enter your email address.", {
+    // VALIDATION first
+    if (!email.trim() || !isValidEmail(email)) {
+      return toast.error("Please enter a valid email address.", {
         id: emailToastId,
       });
     }
 
-    if (!isValidEmail(email)) {
-      return toast.error("Please enter a valid email address.", {
-        id: emailToastId,
+    if (!password.trim() || !isValidPassword(password)) {
+      return toast.error("Password must be at least 6 characters.", {
+        id: passwordToastId,
       });
     }
 
@@ -45,21 +51,50 @@ export default function SignInForm() {
       });
     }
 
-    if (!password.trim()) {
-      return toast.error("Please enter a password.", { id: passwordToastId });
-    }
+    // After validation, start login request
+    setIsLoading(true);
 
-    if (password.length < 6) {
-      return toast.error("Password must be at least 6 characters.", {
-        id: passwordToastId,
-      });
-    }
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
 
-    // Dummy login logic
-    if (email === "test@test.com" && password === "123456") {
+      // Firestore check
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (!userSnap.exists()) {
+        toast.error("User record not found in Firestore.", {
+          id: emailToastId,
+        });
+        return;
+      }
+
+      const userData = userSnap.data();
+      if (!userData.ableToLogin) {
+        toast.error(
+          "Your account is not approved yet. Please wait for admin approval.",
+          { id: emailToastId }
+        );
+        navigate("/");
+        return;
+      }
+
+      // Login success
       navigate("/home");
-    } else {
-      alert("Invalid credentials");
+    } catch (error: any) {
+      if (error.code === "auth/invalid-credential") {
+        toast.error("User not found. Please sign up.", { id: emailToastId });
+        navigate("/signup");
+      } else {
+        toast.error("Something went wrong. Please try again.");
+        navigate("/");
+      }
+    } finally {
+      setIsLoading(false); // re-enable button
     }
   };
 
@@ -71,7 +106,7 @@ export default function SignInForm() {
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           <ChevronLeftIcon className="size-5" />
-          Back to dashboard
+          Back
         </Link>
       </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
@@ -147,6 +182,7 @@ export default function SignInForm() {
                     placeholder="info@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -159,6 +195,7 @@ export default function SignInForm() {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}
@@ -187,11 +224,20 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <button
+                  {/* <button
                     type="submit"
                     className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
                   >
                     Sign in
+                  </button> */}
+                  <button
+                    type="submit"
+                    disabled={isLoading} // only while request is in progress
+                    className={`flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 ${
+                      isLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isLoading ? "Signing in..." : "Sign in"}
                   </button>
                 </div>
               </div>
