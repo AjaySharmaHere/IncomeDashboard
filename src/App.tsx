@@ -44,8 +44,14 @@ export default function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 
-            {/* Forms */}
-            <Route path="/form-elements" element={<FormElements />} />
+            <Route
+              path="/form-elements"
+              element={
+                <ProtectedRoute>
+                  <FormElements />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />

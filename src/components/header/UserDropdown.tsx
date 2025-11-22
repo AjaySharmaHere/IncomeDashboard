@@ -7,9 +7,9 @@ import { auth, db } from "../../firebase/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 interface UserData {
-  name?: string;
+  firstName?: string;
   email?: string;
-  // add other fields if needed
+  lastName?: string;
 }
 
 export default function UserDropdown() {
@@ -19,7 +19,7 @@ export default function UserDropdown() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!auth.currentUser) return; // redirect if not logged in
+      if (!auth.currentUser) return;
 
       const userDocRef = doc(db, "users", auth.currentUser.uid);
       const userSnap = await getDoc(userDocRef);
@@ -27,6 +27,7 @@ export default function UserDropdown() {
       if (userSnap.exists()) {
         setUserData(userSnap.data() as UserData);
       }
+      console.log(userData);
     };
 
     fetchUser();
@@ -51,7 +52,10 @@ export default function UserDropdown() {
           <img src="/images/user/owner.jpg" alt="User" />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">
+          {" "}
+          {userData.firstName || "User"}
+        </span>
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -79,12 +83,10 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
+            {userData.firstName || "User"} {userData.lastName || ""}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.co
-            <h1>Welcome, {userData.name || "User"}!</h1>
-            <p>Your email: {userData.email}</p>
+            <p>{userData.email}</p>
           </span>
         </div>
 

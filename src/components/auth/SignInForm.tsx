@@ -14,8 +14,8 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("ajsharma.here@gmail.com");
+  const [password, setPassword] = useState("1234567");
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -32,7 +32,7 @@ export default function SignInForm() {
     const emailToastId = "emailError";
     const passwordToastId = "passwordError";
 
-    // VALIDATION first
+    // VALIDATION
     if (!email.trim() || !isValidEmail(email)) {
       return toast.error("Please enter a valid email address.", {
         id: emailToastId,
