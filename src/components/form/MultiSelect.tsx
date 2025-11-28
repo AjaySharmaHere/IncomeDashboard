@@ -71,9 +71,19 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       </label>
 
       <div ref={dropdownRef} className="w-full">
-        {/* INPUT BOX */}
-        <div
+        {/* <div
           className="flex min-h-11 h-auto w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white py-1.5 pl-3 pr-3 shadow-sm dark:bg-gray-900 dark:border-gray-700"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleDropdown();
+          }}
+        > */}
+
+        <div
+          tabIndex={0}
+          className="flex min-h-11 h-auto w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white py-1.5 pl-3 pr-3 shadow-sm
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+             dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500 dark:focus:border-blue-500"
           onClick={(e) => {
             e.stopPropagation();
             toggleDropdown();

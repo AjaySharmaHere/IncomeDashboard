@@ -4,6 +4,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Date Picker */
+/* Main popup */
+.datepicker-picker {
+  border: none !important;
+}
+
+.datepicker {
+  background-color: white !important;
+  z-index: 9999 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 1.5rem;
+}
+
+/* Dark mode popup */
+.dark .datepicker {
+  background-color: #111827 !important;
+  color: white !important;
+}
+
+/* Date cell base */
+.datepicker-cell {
+  border-radius: 0.5rem !important;
+  transition: all 0.18s ease-in-out;
+  cursor: pointer;
+  margin: 0.1rem;
+}
+
+/* Hover effect */
+.datepicker-cell:hover {
+  background-color: #bfdbfe !important; /* blue-200 */
+  transform: scale(1.05);
+}
+
+/* Dark mode hover */
+.dark .datepicker-cell:hover {
+  background-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Selected date / month / year */
+.datepicker-grid .datepicker-cell.selected,
+.datepicker-grid .datepicker-cell.selected:hover,
+.datepicker-view .datepicker-cell.selected {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  transform: scale(1.05);
+}
+
+/* Header + month title */
+.dark .datepicker-header,
+.dark .datepicker-title,
+.dark .datepicker-controls button {
+  color: white !important;
+}
+
+/* Nav buttons hover */
+.dark .datepicker-controls button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.5rem;
+}
+
+/* TODAY date color */
+.datepicker-cell.today {
+  color: #3b82f6 !important; /* blue-500 */
+  font-weight: 600;
+}
+
+/* Today with hover */
+.datepicker-cell.today:hover {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* Dark mode today */
+.dark .datepicker-cell.today {
+  color: #60a5fa !important; /* blue-400 */
+}
+
+/* Today if selected */
+.datepicker-cell.today.selected {
+  background-color: #3b82f6 !important;
+  color: white !important;
+}
+
 @layer base {
   body {
     @apply relative text-base font-normal z-1 bg-gray-50 font-outfit;

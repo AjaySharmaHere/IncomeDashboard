@@ -4,6 +4,7 @@ import Label from "../Label";
 import Select from "../Select";
 import MultiSelect from "../MultiSelect";
 import Input from "../input/InputField";
+import FlowbiteDatePicker from "../input/FlowbiteDatePicker";
 
 import { doc, getDoc } from "firebase/firestore";
 import { collection, addDoc } from "firebase/firestore";
@@ -22,6 +23,8 @@ export default function ProductDetails() {
   const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+
+  const [selectedDate, setSelectedDate] = useState("");
 
   // const [formData, setFormData] = useState({
   //   productType: [] as string[],
@@ -75,7 +78,7 @@ export default function ProductDetails() {
         createdAt: new Date(),
       };
 
-      console.log("Saving Income Data:", dataToSave); // ✅ Print to console
+      console.log("Saving Income Data:", dataToSave);
 
       const userIncomeRef = collection(db, "users", user.uid, "income_entries");
       await addDoc(userIncomeRef, dataToSave);
@@ -110,9 +113,8 @@ export default function ProductDetails() {
   return (
     <ComponentCard title="Income Dashboard">
       <div className="space-y-6">
-        {/* Field 1 - Product Type */}
         <MultiSelect
-          label="Field 1 - Product Type"
+          label="Product Type"
           options={productTypeOptions}
           defaultSelected={[]}
           onChange={setSelectedProductType}
@@ -126,30 +128,49 @@ export default function ProductDetails() {
           onChange={setSelectedAgency}
         />
 
-        {/* Field 3 - Payment Mode */}
-        <Label>Field 3 - Payment Mode</Label>
-        <Select
-          options={paymentModeOptions}
-          placeholder="Select Payment Mode"
-          onChange={setSelectedPaymentMode}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Field 3 */}
+          <div>
+            <Label>Field 3 - Payment Mode</Label>
+            <Select
+              options={paymentModeOptions}
+              placeholder="Select Payment Mode"
+              onChange={setSelectedPaymentMode}
+            />
+          </div>
 
-        {/* Field 4 - Price */}
-        <Label>Field 4 - Price</Label>
-        <Input
-          type="number"
-          value={price}
-          placeholder="Enter Price"
-          onChange={(e) => setPrice(e.target.value)}
-        />
+          {/* Field 4 */}
+          <div>
+            <Label>Field 4 - Price</Label>
+            <Input
+              type="number"
+              value={price}
+              placeholder="Enter Price"
+              onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+        </div>
 
-        {/* Field 5 - Status */}
-        <Label>Field 5 - Status</Label>
-        <Select
-          options={statusOptions}
-          placeholder="Select Status"
-          onChange={setSelectedStatus}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Field 3 */}
+          <div>
+            <Label>Field 5 - Status</Label>
+            <Select
+              options={statusOptions}
+              placeholder="Select Status"
+              onChange={setSelectedStatus}
+            />
+          </div>
+          {/* Field 4 */}
+
+          <div>
+            <Label>Date</Label>
+            <FlowbiteDatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+            />
+          </div>
+        </div>
 
         <button
           type="submit"
