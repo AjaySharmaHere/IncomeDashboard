@@ -1,3 +1,5 @@
+// Product Type and Agency MultiSelect Component
+
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 
@@ -71,23 +73,23 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       </label>
 
       <div ref={dropdownRef} className="w-full">
-        {/* <div
-          className="flex min-h-11 h-auto w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white py-1.5 pl-3 pr-3 shadow-sm dark:bg-gray-900 dark:border-gray-700"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleDropdown();
-          }}
-        > */}
-
         <div
           tabIndex={0}
-          className="flex min-h-11 h-auto w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white py-1.5 pl-3 pr-3 shadow-sm
-             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-             dark:bg-gray-900 dark:border-gray-700 dark:focus:ring-blue-500 dark:focus:border-blue-500"
           onClick={(e) => {
             e.stopPropagation();
             toggleDropdown();
           }}
+          className={`
+            flex min-h-11 h-auto w-full cursor-pointer items-center justify-between rounded-lg 
+            px-3 py-1.5 shadow-theme-xs bg-white text-gray-800 
+            border border-gray-300
+            appearance-none outline-none
+            focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20
+            dark:bg-gray-900 dark:text-white/90 dark:border-gray-700
+            dark:focus:border-brand-800
+            transition-all
+            ${isOpen ? "ring-2 ring-brand-500/20 border-brand-300 dark:border-brand-800" : ""}
+          `}
         >
           <div className="flex flex-wrap gap-2 flex-auto">
             {selectedValuesText.length > 0 ? (
@@ -135,7 +137,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           </div>
         </div>
 
-        {/* DROPDOWN — NOT ABSOLUTE */}
+        {/* DROPDOWN */}
         {isOpen && (
           <div className="mt-2 w-full rounded-lg border border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-700 max-h-56 overflow-auto">
             {options.map((option) => (

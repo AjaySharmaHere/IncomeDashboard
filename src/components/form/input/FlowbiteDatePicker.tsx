@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-
 import Datepicker from "flowbite-datepicker/Datepicker";
 
 interface Props {
@@ -20,8 +19,10 @@ export default function FlowbiteDatePicker({ value, onChange }: Props) {
       theme: "light",
     });
 
-    const handler = (e: any) => {
-      onChange(e.detail.datepicker.input.value);
+    const handler = () => {
+      // Safely get the value from the input
+      const dateValue = inputRef.current?.value;
+      if (dateValue) onChange(dateValue);
     };
 
     inputRef.current.addEventListener("changeDate", handler);

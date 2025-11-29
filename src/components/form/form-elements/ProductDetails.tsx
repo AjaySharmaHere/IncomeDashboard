@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Select from "../Select";
@@ -6,11 +7,14 @@ import MultiSelect from "../MultiSelect";
 import Input from "../input/InputField";
 import FlowbiteDatePicker from "../input/FlowbiteDatePicker";
 
-import { doc, getDoc } from "firebase/firestore";
-import { collection, addDoc } from "firebase/firestore";
+import { doc, getDoc, collection, addDoc } from "firebase/firestore";
 import { db, auth } from "../../../firebase/firebase";
 
+import { toast } from "react-hot-toast";
+
 export default function ProductDetails() {
+  const navigate = useNavigate();
+
   const [incomeOptions, setIncomeOptions] = useState({
     product_types: [] as string[],
     agencies: [] as string[],
@@ -20,76 +24,108 @@ export default function ProductDetails() {
 
   const [selectedProductType, setSelectedProductType] = useState<string[]>([]);
   const [selectedAgency, setSelectedAgency] = useState<string[]>([]);
-  const [selectedPaymentMode, setSelectedPaymentMode] = useState<string>("");
-  const [price, setPrice] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
-
+  const [productName, setProductName] = useState("");
+  const [selectedPaymentMode, setSelectedPaymentMode] = useState("");
+  const [price, setPrice] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  // const [formData, setFormData] = useState({
-  //   productType: [] as string[],
-  //   agency: [] as string[],
-  //   paymentMode: "",
-  //   price: "",
-  //   status: "",
-  // });
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Load income options from Firebase
+  const formToastId = "productFormToast";
+
+  // ✅ Load income options
   useEffect(() => {
     async function loadIncomeOptions() {
       try {
-        const user = auth.currentUser;
-        console.log("Logged in user:", user?.email, user?.uid);
-
         const ref = doc(db, "income_options", "W6zS6OAqNYrc10bPTOSy");
         const snap = await getDoc(ref);
 
         if (snap.exists()) {
           const data = snap.data();
-          console.log("Income Options JSON:", JSON.stringify(data, null, 2));
           setIncomeOptions({
             product_types: data.product_types || [],
             agencies: data.agencies || [],
             payment_modes: data.payment_modes || [],
-            payment_status: data.payment_status || [],
+            payment_status: data.status || [],
           });
-        } else {
-          console.log("No income_options document found");
         }
       } catch (err) {
-        console.error("Error fetching income_options:", err);
+        
       }
     }
 
     loadIncomeOptions();
   }, []);
 
+  // ✅ Submit Handler
   const handleFormSubmit = async () => {
+    if (isSaving) return;
+
+    const formData = {
+      productType: selectedProductType,
+      agency: selectedAgency,
+      productName,
+      paymentMode: selectedPaymentMode,
+      price,
+      status: selectedStatus,
+      date: selectedDate,
+    };
+
+    // ✅ Validation
+    const hasEmpty = Object.values(formData).some(
+      (val) => val === "" || (Array.isArray(val) && val.length === 0)
+    );
+
+    if (hasEmpty) {
+      toast.error("⚠️ Please fill all fields before submitting.", {
+        id: formToastId,
+      });
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      toast.error("User not logged in", { id: formToastId });
+      return;
+    }
+
+    const userIncomeRef = collection(db, "users", user.uid, "income_entries");
+
     try {
-      const user = auth.currentUser;
-      if (!user) return;
+      setIsSaving(true);
 
-      const dataToSave = {
-        productType: selectedProductType,
-        agency: selectedAgency,
-        paymentMode: selectedPaymentMode,
-        price: price,
-        status: selectedStatus,
-        createdAt: new Date(),
-      };
+      await toast.promise(
+  addDoc(userIncomeRef, { ...formData, createdAt: new Date() }),
+  {
+    loading: "Saving income...",
+    success: "Income saved successfully!",
+    error: "Failed to save income.",
+  }
+);
 
-      console.log("Saving Income Data:", dataToSave);
 
-      const userIncomeRef = collection(db, "users", user.uid, "income_entries");
-      await addDoc(userIncomeRef, dataToSave);
+      // ✅ Reset Form
+      setSelectedProductType([]);
+      setSelectedAgency([]);
+      setProductName("");
+      setSelectedPaymentMode("");
+      setPrice("");
+      setSelectedStatus("");
+      setSelectedDate("");
 
-      alert("Income saved successfully!");
-    } catch (err) {
-      console.error("Error saving income:", err);
+      // ✅ Redirect after short delay
+      setTimeout(() => {
+        navigate("/home");
+      }, 800);
+    } catch (error) {
+      
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Map Firebase arrays to MultiSelect/Select options
+  // ✅ Dropdown mapping
   const productTypeOptions = incomeOptions.product_types.map((item) => ({
     value: item,
     text: item,
@@ -100,12 +136,12 @@ export default function ProductDetails() {
     text: item,
   }));
 
-  const paymentModeOptions = incomeOptions.payment_modes.map((m: string) => ({
+  const paymentModeOptions = incomeOptions.payment_modes.map((m) => ({
     value: m,
     label: m,
   }));
 
-  const statusOptions = incomeOptions.payment_status.map((s: string) => ({
+  const statusOptions = incomeOptions.payment_status.map((s) => ({
     value: s,
     label: s,
   }));
@@ -113,25 +149,37 @@ export default function ProductDetails() {
   return (
     <ComponentCard title="Income Dashboard">
       <div className="space-y-6">
+
         <MultiSelect
           label="Product Type"
           options={productTypeOptions}
-          defaultSelected={[]}
           onChange={setSelectedProductType}
         />
 
-        {/* Field 2 - Agency */}
-        <MultiSelect
-          label="Field 2 - Agency"
-          options={agencyOptions}
-          defaultSelected={[]}
-          onChange={setSelectedAgency}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <MultiSelect
+            label="Agency"
+            options={agencyOptions}
+            onChange={setSelectedAgency}
+          />
+
+          <div>
+            <Label>Product name</Label>
+            <Input
+              type="text"
+              value={productName}
+              placeholder="Enter Product Name"
+              onChange={(e) => setProductName(e.target.value)}
+            />
+          </div>
+
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Field 3 */}
+
           <div>
-            <Label>Field 3 - Payment Mode</Label>
+            <Label>Payment Mode</Label>
             <Select
               options={paymentModeOptions}
               placeholder="Select Payment Mode"
@@ -139,9 +187,8 @@ export default function ProductDetails() {
             />
           </div>
 
-          {/* Field 4 */}
           <div>
-            <Label>Field 4 - Price</Label>
+            <Label>Price</Label>
             <Input
               type="number"
               value={price}
@@ -149,45 +196,47 @@ export default function ProductDetails() {
               onChange={(e) => setPrice(e.target.value)}
             />
           </div>
+
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Field 3 */}
+
           <div>
-            <Label>Field 5 - Status</Label>
+            <Label>Status</Label>
             <Select
               options={statusOptions}
               placeholder="Select Status"
               onChange={setSelectedStatus}
             />
           </div>
-          {/* Field 4 */}
 
           <div>
             <Label>Date</Label>
             <FlowbiteDatePicker
               value={selectedDate}
-              onChange={setSelectedDate}
+              onChange={(val: string | Date | null | undefined) => {
+                if (!val) return;
+                if (typeof val === "string") setSelectedDate(val);
+                else setSelectedDate(val.toISOString().split("T")[0]);
+              }}
             />
           </div>
+
         </div>
 
         <button
-          type="submit"
+          type="button"
+          disabled={isSaving}
           onClick={handleFormSubmit}
-          className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
-          // onClick={() => {
-          //   console.log({
-          //     selectedProductType,
-          //     selectedAgency,
-          //     selectedPaymentMode,
-          //     price,
-          //     selectedStatus,
-          //   });
-          // }}
+          className={`flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white ${
+            isSaving
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-brand-500 hover:bg-brand-600"
+          }`}
         >
-          Submit
+          {isSaving ? "Saving..." : "Submit"}
         </button>
+
       </div>
     </ComponentCard>
   );
