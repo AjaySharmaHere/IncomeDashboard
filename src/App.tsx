@@ -40,7 +40,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/profile" element={<UserProfiles />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <UserProfiles />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
 

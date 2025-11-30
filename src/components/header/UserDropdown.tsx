@@ -1,39 +1,16 @@
+// Dropdown menu component for user profile actions in the header
+
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-import { Link } from "react-router";
 
-import { useEffect, useState } from "react";
-import { auth, db } from "../../firebase/firebase";
-import { doc, getDoc } from "firebase/firestore";
-
-interface UserData {
-  firstName?: string;
-  email?: string;
-  lastName?: string;
-}
+import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const { userData, logout } = useAuth();
 
-  const [userData, setUserData] = useState<UserData | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (!auth.currentUser) return;
-
-      const userDocRef = doc(db, "users", auth.currentUser.uid);
-      const userSnap = await getDoc(userDocRef);
-
-      if (userSnap.exists()) {
-        setUserData(userSnap.data() as UserData);
-      }
-      console.log(userData);
-    };
-
-    fetchUser();
-  }, []);
-
-  if (!userData) return <p>Loading...</p>;
+  if (!userData) return null;
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -83,7 +60,7 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            {userData.firstName || "User"} {userData.lastName || ""}
+            {userData.firstName || "User"}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
             <p>{userData.email}</p>
@@ -167,9 +144,9 @@ export default function UserDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        <Link
-          to="/signin"
-          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+        <button
+          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-red-500 rounded-lg group text-theme-sm hover:bg-red-100 hover:text-red-700 dark:text-red-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+          onClick={logout}
         >
           <svg
             className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
@@ -187,7 +164,7 @@ export default function UserDropdown() {
             />
           </svg>
           Sign out
-        </Link>
+        </button>
       </Dropdown>
     </div>
   );
