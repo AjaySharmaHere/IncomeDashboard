@@ -34,7 +34,6 @@ export default function ProductDetails() {
 
   const formToastId = "productFormToast";
 
-  // ✅ Load income options
   useEffect(() => {
     async function loadIncomeOptions() {
       try {
@@ -51,16 +50,20 @@ export default function ProductDetails() {
           });
         }
       } catch (err) {
-        
+
       }
     }
 
     loadIncomeOptions();
   }, []);
 
-  // ✅ Submit Handler
   const handleFormSubmit = async () => {
-    if (isSaving) return;
+    console.log("Submit button clicked");
+
+    if (isSaving) {
+      console.log("Already saving, return");
+      return;
+    }
 
     const formData = {
       productType: selectedProductType,
@@ -72,12 +75,14 @@ export default function ProductDetails() {
       date: selectedDate,
     };
 
-    // ✅ Validation
+    console.log("Form Data:", formData);
+
     const hasEmpty = Object.values(formData).some(
       (val) => val === "" || (Array.isArray(val) && val.length === 0)
     );
 
     if (hasEmpty) {
+      console.log("Form has empty fields");
       toast.error("⚠️ Please fill all fields before submitting.", {
         id: formToastId,
       });
@@ -85,6 +90,8 @@ export default function ProductDetails() {
     }
 
     const user = auth.currentUser;
+    console.log("Current user:", user);
+
     if (!user) {
       toast.error("User not logged in", { id: formToastId });
       return;
@@ -94,18 +101,20 @@ export default function ProductDetails() {
 
     try {
       setIsSaving(true);
+      console.log("Saving to Firebase...");
 
       await toast.promise(
-  addDoc(userIncomeRef, { ...formData, createdAt: new Date() }),
-  {
-    loading: "Saving income...",
-    success: "Income saved successfully!",
-    error: "Failed to save income.",
-  }
-);
+        addDoc(userIncomeRef, { ...formData, createdAt: new Date() }),
+        {
+          loading: "Saving income...",
+          success: "Income saved successfully!",
+          error: "Failed to save income.",
+        }
+      );
 
+      console.log("Saved successfully");
 
-      // ✅ Reset Form
+      // Reset form
       setSelectedProductType([]);
       setSelectedAgency([]);
       setProductName("");
@@ -114,18 +123,18 @@ export default function ProductDetails() {
       setSelectedStatus("");
       setSelectedDate("");
 
-      // ✅ Redirect after short delay
       setTimeout(() => {
         navigate("/home");
       }, 800);
     } catch (error) {
-      
+      console.log("Error saving:", error);
+      toast.error("Failed to save income.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // ✅ Dropdown mapping
+
   const productTypeOptions = incomeOptions.product_types.map((item) => ({
     value: item,
     text: item,
@@ -228,11 +237,10 @@ export default function ProductDetails() {
           type="button"
           disabled={isSaving}
           onClick={handleFormSubmit}
-          className={`flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white ${
-            isSaving
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-brand-500 hover:bg-brand-600"
-          }`}
+          className={`flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white ${isSaving
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-brand-500 hover:bg-brand-600"
+            }`}
         >
           {isSaving ? "Saving..." : "Submit"}
         </button>

@@ -1,9 +1,11 @@
-export type IncomeEntry = {
+import { Timestamp } from "firebase/firestore"; // if using Firestore
+
+export interface IncomeEntry {
   productName: string;
-  price: number;
+  price: string;
   date: string;
   paymentMode: string;
   status: string;
-};
-
-
+  createdAt: Timestamp;
+  agency?: string[];
+}

@@ -47,65 +47,122 @@ const TablePagination: React.FC<Props> = ({ table }) => {
   const paginationRange = getPaginationRange();
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center gap-3 mt-6">
-      {/* ===== PAGINATION BUTTONS ===== */}
-      <div className="flex flex-wrap gap-1">
+    <div
+      className="
+        flex flex-col
+        mt-2
+        justify-between items-center gap-3
+        sm:flex-row
+      "
+    >
+      {/* PAGINATION BUTTONS */}
+      <div
+        className="
+          flex flex-wrap
+          gap-1
+        "
+      >
+        {/* PREV */}
         <button
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
-          className="px-3 h-10 rounded-l-lg border border-neutral-300 dark:border-neutral-700
-             bg-neutral-100 dark:bg-neutral-900
-             text-neutral-700 dark:text-neutral-300
-             hover:bg-neutral-200 dark:hover:bg-neutral-800 transition disabled:opacity-40"
+          className="
+            h-9
+            px-2
+            text-sm text-neutral-700
+            bg-neutral-100
+            rounded-md border border-neutral-300
+            dark:border-neutral-700 dark:bg-slate-800 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-gray-800 transition disabled:opacity-40
+          "
         >
-          Previous
+          Prev
         </button>
 
+        {/* PAGE NUMBERS */}
         {paginationRange.map((page, idx) =>
           page === "..." ? (
             <span
               key={idx}
-              className="px-3 h-10 flex items-center justify-center border border-neutral-300 dark:border-neutral-700
-                         bg-neutral-100 dark:bg-neutral-900 text-neutral-500"
+              className="
+                h-9
+                px-2
+                text-sm text-neutral-700
+                bg-neutral-100
+                rounded-md border border-neutral-300
+                dark:border-neutral-700 dark:bg-slate-800 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-gray-800 transition disabled:opacity-40
+              "
             >
-              ...
+              ...ß
             </span>
           ) : (
             <button
               key={idx}
               onClick={() => table.setPageIndex(Number(page) - 1)}
-              className={`px-3 h-10 flex items-center justify-center border text-sm font-medium transition
+              className={`
+                h-9
+                px-2
+                text-sm
+                rounded-md border border-neutral-300
+                transition dark:border-neutral-700
                 ${currentPage === page
                   ? "bg-blue-600 text-white dark:bg-blue-500"
-                  : "bg-neutral-100 dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                  : "bg-neutral-100 dark:bg-slate-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-gray-800"
                 }
-                border-neutral-300 dark:border-neutral-700`}
+              `}
             >
               {page}
             </button>
-          )
+          ),
         )}
 
+        {/* NEXT */}
         <button
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
-          className="px-3 h-10 rounded-r-lg border border-neutral-300 dark:border-neutral-700
-             bg-neutral-100 dark:bg-neutral-900
-             text-neutral-700 dark:text-neutral-300
-             hover:bg-neutral-200 dark:hover:bg-neutral-800 transition disabled:opacity-40"
+          className="
+            h-9
+            px-2
+            text-sm text-neutral-700
+            bg-neutral-100
+            rounded-md border border-neutral-300
+            dark:border-neutral-700 dark:bg-slate-800 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-gray-800 transition disabled:opacity-40
+          "
         >
           Next
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* ✅ Page X of Y & Showing N */}
-        <div className="text-sm text-neutral-700 dark:text-neutral-300">
-          <span className="font-medium">Page {currentPage}</span> of {pageCount}{" "}
+      {/* RIGHT SIDE INFO + DROPDOWN */}
+      <div
+        className="
+          flex
+          items-center gap-3
+        "
+      >
+        {/* PAGE INFO */}
+        <div
+          className="
+            text-sm text-neutral-700
+            dark:text-neutral-300
+          "
+        >
+          <span
+            className="
+              font-medium
+            "
+          >
+            Page {currentPage}
+          </span>{" "}
+          of {pageCount}
         </div>
 
-        {/* ✅ DROPDOWN WITH SINGLE ARROW (FIXED) */}
-        <div className="relative inline-block">
+        {/* PAGE SIZE DROPDOWN */}
+        <div
+          className="
+            inline-block
+            relative
+          "
+        >
           <select
             value={pageSize}
             onChange={(e) => {
@@ -113,17 +170,15 @@ const TablePagination: React.FC<Props> = ({ table }) => {
               table.setPageSize(newSize);
               table.setPageIndex(0);
             }}
-            className="appearance-none pr-8 rounded-lg px-3 py-2 text-sm
-                       border border-neutral-300 dark:border-neutral-700
-                       bg-neutral-100 dark:bg-neutral-900
-                       text-neutral-700 dark:text-neutral-200
-                       focus:outline-none focus:ring-2 focus:ring-blue-500"
-            style={{
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none",
-              backgroundImage: "none",
-            }}
+            style={{ appearance: "none", backgroundImage: "none" }}
+            className="
+              h-9
+              px-3 pr-7
+              text-sm text-neutral-700
+              bg-neutral-100
+              rounded-md border border-neutral-300
+              appearance-none dark:border-neutral-700 dark:bg-slate-800 dark:text-neutral-200 focus:outline-none focus:ring-0 focus:border-neutral-300
+            "
           >
             {[5, 10, 20, 50].map((size) => (
               <option key={size} value={size}>
@@ -131,8 +186,22 @@ const TablePagination: React.FC<Props> = ({ table }) => {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-neutral-500">
-            <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+
+          {/* DROPDOWN ICON */}
+          <div
+            className="
+              text-neutral-500
+              pointer-events-none
+              absolute right-2 top-1/2 -translate-y-1/2
+            "
+          >
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="
+                w-4 h-4
+              "
+            >
               <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" />
             </svg>
           </div>

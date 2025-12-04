@@ -27,7 +27,16 @@ export default function App() {
   return (
     <>
       <Router>
-        <Toaster position="top-center" reverseOrder={false} />
+        {/* <Toaster position="top-center" reverseOrder={false} /> */}
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            style: {
+              zIndex: 999,
+            },
+          }}
+        />
         <ScrollToTop />
         <Routes>
           <Route index path="/" element={<LoginScreen />} />
