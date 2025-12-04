@@ -1,4 +1,5 @@
-import React, { useLayoutEffect, useState } from "react";
+// src/pages/Dashboard/IncomeTable/IncomeTable.tsx
+import React, { useLayoutEffect, useMemo, useState, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,6 +11,7 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
+
 import TableHeader from "./TableHeader";
 import TableBody from "./TableBody";
 import TablePagination from "./TablePagination";
@@ -17,7 +19,7 @@ import ColumnSelector from "./ColumnSelector";
 import { IncomeEntry } from "./types";
 
 interface Props {
-  entries: IncomeEntry[];
+  entries: IncomeEntry[]; // coming from parent / firebase
 }
 
 const columns = [
@@ -29,6 +31,29 @@ const columns = [
 ];
 
 const IncomeTable: React.FC<Props> = ({ entries }) => {
+  // Prepare data so newest appears first:
+  // - prefer createdAt (Firestore Timestamp or ISO string) if present
+  // - fallback to reversing the incoming array
+  const sortedEntries = useMemo(() => {
+    if (!entries || entries.length === 0) return entries;
+    // check for createdAt presence
+    const hasCreatedAt = entries.some((e) => (e as any).createdAt !== undefined);
+    if (hasCreatedAt) {
+      // map safely: if createdAt is Firestore Timestamp with toDate(), handle it
+      return [...entries].sort((a: any, b: any) => {
+        const aTs = (a.createdAt && typeof a.createdAt.toDate === "function")
+          ? a.createdAt.toDate().getTime()
+          : new Date(a.createdAt).getTime();
+        const bTs = (b.createdAt && typeof b.createdAt.toDate === "function")
+          ? b.createdAt.toDate().getTime()
+          : new Date(b.createdAt).getTime();
+        return bTs - aTs; // newest first
+      });
+    }
+    // fallback: reverse order (assumes firebase returns oldest-first)
+    return [...entries].reverse();
+  }, [entries]);
+
   const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -41,6 +66,7 @@ const IncomeTable: React.FC<Props> = ({ entries }) => {
     paymentMode: true,
   });
 
+  // responsive column visibility
   useLayoutEffect(() => {
     const apply = () => {
       const small = typeof window !== "undefined" && window.innerWidth < 768;
@@ -52,14 +78,13 @@ const IncomeTable: React.FC<Props> = ({ entries }) => {
         paymentMode: !small,
       });
     };
-
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
   }, []);
 
   const table = useReactTable({
-    data: entries,
+    data: sortedEntries,
     columns,
     state: {
       globalFilter,
@@ -79,49 +104,34 @@ const IncomeTable: React.FC<Props> = ({ entries }) => {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
+  // When entries change, jump to first page so newest is visible
+  useEffect(() => {
+    // defensive: table might be undefined during SSR
+    try {
+      table.setPageIndex(0);
+    } catch (e) {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries?.length]);
+
   return (
-    <div
-      className="
-        flex flex-col overflow-hidden
-        w-full
-        rounded-md
-      "
-    >
-      <div
-        className="
-          md:block
-        "
-      >
+    <div className="flex flex-col overflow-hidden w-full rounded-md">
+      {/* Column selector (hidden on small by CSS in ColumnSelector) */}
+      <div className="hidden md:block">
         <ColumnSelector table={table} />
       </div>
 
       {/* Table */}
-      <div
-        className="
-          overflow-x-auto
-          w-full
-          border border-gray-300 rounded-lg
-          dark:border-gray-800
-        "
-      >
-        <table
-          className="
-            w-full
-            border-collapse
-            table-auto
-          "
-        >
+      <div className="overflow-x-auto w-full border border-gray-300 rounded-lg dark:border-gray-700">
+        <table className="w-full table-auto border-collapse">
           <TableHeader table={table} />
           <TableBody table={table} />
         </table>
       </div>
 
       {/* Pagination */}
-      <div
-        className="
-          mt-3
-        "
-      >
+      <div className="mt-3">
         <TablePagination table={table} />
       </div>
     </div>

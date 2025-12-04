@@ -187,7 +187,7 @@ export default function ProductDetails() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          <div>
+          <div className="text-gray-800 dark:text-white">
             <Label>Payment Mode</Label>
             <Select
               options={paymentModeOptions}
@@ -210,7 +210,7 @@ export default function ProductDetails() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-          <div>
+          <div className="text-gray-800 dark:text-white">
             <Label>Status</Label>
             <Select
               options={statusOptions}
