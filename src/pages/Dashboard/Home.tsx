@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs } from "firebase/firestore"; // <- added imports
+import { collection, getDocs } from "firebase/firestore";
 import { db, auth } from "../../firebase/firebase";
+
 import IncomeTable from "./IncomeTable/IncomeTable";
 import { IncomeEntry } from "./IncomeTable/types";
 
@@ -24,10 +25,20 @@ export default function Home() {
           collection(db, "users", user.uid, "income_entries")
         );
 
-        const data = snapshot.docs.map((doc) => ({
-          ...doc.data(),
-          price: Number(doc.data().price ?? 0),
-        })) as IncomeEntry[];
+        const data: IncomeEntry[] = snapshot.docs.map((doc) => {
+          const d = doc.data() as any;
+
+          return {
+            productName: d.productName ?? "",
+            price: String(d.price ?? "0"),
+            date: d.date ?? "",
+            paymentMode: d.paymentMode ?? "",
+            status: d.status ?? "",
+            createdAt: d.createdAt,
+            agency: d.agency ?? [],
+            resourceLink: d.resourceLink ?? "",
+          };
+        });
 
         setEntries(data);
       } catch (error) {
@@ -40,7 +51,9 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) return <div className="text-center p-4">Loading...</div>;
+  if (loading) {
+    return <div className="text-center p-4">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen px-5 dark:bg-gray-900">

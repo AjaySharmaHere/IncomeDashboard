@@ -27,6 +27,7 @@ export default function ProductDetails() {
   const [productName, setProductName] = useState("");
   const [selectedPaymentMode, setSelectedPaymentMode] = useState("");
   const [price, setPrice] = useState("");
+  const [resourceLink, setResourceLink] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
@@ -50,7 +51,7 @@ export default function ProductDetails() {
           });
         }
       } catch (err) {
-
+        console.error("Error loading options:", err);
       }
     }
 
@@ -58,12 +59,7 @@ export default function ProductDetails() {
   }, []);
 
   const handleFormSubmit = async () => {
-    console.log("Submit button clicked");
-
-    if (isSaving) {
-      console.log("Already saving, return");
-      return;
-    }
+    if (isSaving) return;
 
     const formData = {
       productType: selectedProductType,
@@ -71,18 +67,22 @@ export default function ProductDetails() {
       productName,
       paymentMode: selectedPaymentMode,
       price,
+      resourceLink,
       status: selectedStatus,
       date: selectedDate,
     };
 
-    console.log("Form Data:", formData);
+    const hasEmpty = [
+      formData.productType,
+      formData.productName,
+      formData.paymentMode,
+      formData.price,
+      formData.status,
+      formData.date,
+    ].some((val) => val === "" || (Array.isArray(val) && val.length === 0));
 
-    const hasEmpty = Object.values(formData).some(
-      (val) => val === "" || (Array.isArray(val) && val.length === 0)
-    );
 
     if (hasEmpty) {
-      console.log("Form has empty fields");
       toast.error("⚠️ Please fill all fields before submitting.", {
         id: formToastId,
       });
@@ -90,8 +90,6 @@ export default function ProductDetails() {
     }
 
     const user = auth.currentUser;
-    console.log("Current user:", user);
-
     if (!user) {
       toast.error("User not logged in", { id: formToastId });
       return;
@@ -101,8 +99,6 @@ export default function ProductDetails() {
 
     try {
       setIsSaving(true);
-      console.log("Saving to Firebase...");
-
       await toast.promise(
         addDoc(userIncomeRef, { ...formData, createdAt: new Date() }),
         {
@@ -112,14 +108,13 @@ export default function ProductDetails() {
         }
       );
 
-      console.log("Saved successfully");
-
       // Reset form
       setSelectedProductType([]);
       setSelectedAgency([]);
       setProductName("");
       setSelectedPaymentMode("");
       setPrice("");
+      setResourceLink("");
       setSelectedStatus("");
       setSelectedDate("");
 
@@ -127,13 +122,12 @@ export default function ProductDetails() {
         navigate("/home");
       }, 800);
     } catch (error) {
-      console.log("Error saving:", error);
+      console.error("Error saving:", error);
       toast.error("Failed to save income.");
     } finally {
       setIsSaving(false);
     }
   };
-
 
   const productTypeOptions = incomeOptions.product_types.map((item) => ({
     value: item,
@@ -158,7 +152,6 @@ export default function ProductDetails() {
   return (
     <ComponentCard title="Income Dashboard">
       <div className="space-y-6">
-
         <MultiSelect
           label="Product Type"
           options={productTypeOptions}
@@ -166,7 +159,6 @@ export default function ProductDetails() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           <MultiSelect
             label="Agency"
             options={agencyOptions}
@@ -174,7 +166,7 @@ export default function ProductDetails() {
           />
 
           <div>
-            <Label>Product name</Label>
+            <Label>Product Name</Label>
             <Input
               type="text"
               value={productName}
@@ -182,11 +174,9 @@ export default function ProductDetails() {
               onChange={(e) => setProductName(e.target.value)}
             />
           </div>
-
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           <div className="text-gray-800 dark:text-white">
             <Label>Payment Mode</Label>
             <Select
@@ -205,11 +195,19 @@ export default function ProductDetails() {
               onChange={(e) => setPrice(e.target.value)}
             />
           </div>
+        </div>
 
+        <div>
+          <Label>Resources / Links</Label>
+          <Input
+            type="text"
+            value={resourceLink}
+            placeholder="Paste link here"
+            onChange={(e) => setResourceLink(e.target.value)}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
           <div className="text-gray-800 dark:text-white">
             <Label>Status</Label>
             <Select
@@ -230,21 +228,17 @@ export default function ProductDetails() {
               }}
             />
           </div>
-
         </div>
 
         <button
           type="button"
           disabled={isSaving}
           onClick={handleFormSubmit}
-          className={`flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white ${isSaving
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-brand-500 hover:bg-brand-600"
+          className={`flex w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-white ${isSaving ? "bg-gray-400 cursor-not-allowed" : "bg-brand-500 hover:bg-brand-600"
             }`}
         >
           {isSaving ? "Saving..." : "Submit"}
         </button>
-
       </div>
     </ComponentCard>
   );

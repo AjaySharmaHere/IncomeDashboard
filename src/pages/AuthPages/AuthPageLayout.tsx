@@ -1,5 +1,4 @@
 import React from "react";
-import GridShape from "../../components/common/GridShape";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
 
 export default function AuthLayout({
@@ -13,8 +12,6 @@ export default function AuthLayout({
         {children}
         <div className="items-center hidden w-full h-full lg:w-1/2 bg-brand-950 dark:bg-white/5 lg:grid">
           <div className="relative flex items-center justify-center z-1">
-            {/* <!-- ===== Common Grid Shape Start ===== --> */}
-            <GridShape />
             <div className="flex flex-col items-center max-w-xl">
 
               <div className="md:text-right">
@@ -24,7 +21,6 @@ export default function AuthLayout({
                   className="object-cover w-full h-auto"
                 />
               </div>
-
             </div>
           </div>
         </div>

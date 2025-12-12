@@ -1,15 +1,14 @@
-// src/pages/Dashboard/IncomeTable/IncomeTable.tsx
 import React, { useLayoutEffect, useMemo, useState, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   VisibilityState,
   ColumnFiltersState,
   SortingState,
   RowSelectionState,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
 } from "@tanstack/react-table";
 
 import TableHeader from "./TableHeader";
@@ -19,65 +18,84 @@ import ColumnSelector from "./ColumnSelector";
 import { IncomeEntry } from "./types";
 
 interface Props {
-  entries: IncomeEntry[]; // coming from parent / firebase
+  entries: IncomeEntry[];
 }
 
 const columns = [
   { accessorKey: "productName", header: "Product" },
-  { accessorKey: "price", header: "Price" },
+  { accessorKey: "price", header: "Amount" },
   { accessorKey: "date", header: "Date" },
-  { accessorKey: "paymentMode", header: "Payment Mode" },
+  { accessorKey: "paymentMode", header: "Payment" },
   { accessorKey: "status", header: "Status" },
+  {
+    accessorKey: "resourceLink",
+    header: "Resource",
+    cell: ({ getValue }: any) => {
+      const link = getValue();
+      if (!link)
+        return <span className="text-gray-400 dark:text-gray-500">—</span>;
+
+      return (
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            text-indigo-600 dark:text-indigo-400
+            hover:underline font-medium
+          "
+        >
+          Open
+        </a>
+      );
+    },
+  },
 ];
 
 const IncomeTable: React.FC<Props> = ({ entries }) => {
-  // Prepare data so newest appears first:
-  // - prefer createdAt (Firestore Timestamp or ISO string) if present
-  // - fallback to reversing the incoming array
   const sortedEntries = useMemo(() => {
-    if (!entries || entries.length === 0) return entries;
-    // check for createdAt presence
-    const hasCreatedAt = entries.some((e) => (e as any).createdAt !== undefined);
-    if (hasCreatedAt) {
-      // map safely: if createdAt is Firestore Timestamp with toDate(), handle it
-      return [...entries].sort((a: any, b: any) => {
-        const aTs = (a.createdAt && typeof a.createdAt.toDate === "function")
+    if (!entries?.length) return entries;
+
+    return [...entries].sort((a: any, b: any) => {
+      const aTs =
+        typeof a.createdAt?.toDate === "function"
           ? a.createdAt.toDate().getTime()
           : new Date(a.createdAt).getTime();
-        const bTs = (b.createdAt && typeof b.createdAt.toDate === "function")
+
+      const bTs =
+        typeof b.createdAt?.toDate === "function"
           ? b.createdAt.toDate().getTime()
           : new Date(b.createdAt).getTime();
-        return bTs - aTs; // newest first
-      });
-    }
-    // fallback: reverse order (assumes firebase returns oldest-first)
-    return [...entries].reverse();
+
+      return bTs - aTs;
+    });
   }, [entries]);
 
-  const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     productName: true,
     price: true,
-    status: true,
     date: true,
     paymentMode: true,
+    status: true,
+    resourceLink: true,
   });
 
-  // responsive column visibility
   useLayoutEffect(() => {
     const apply = () => {
-      const small = typeof window !== "undefined" && window.innerWidth < 768;
+      const small = window.innerWidth < 768;
       setColumnVisibility({
         productName: true,
         price: true,
-        status: true,
         date: !small,
         paymentMode: !small,
+        status: true,
+        resourceLink: true,
       });
     };
+
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
@@ -87,14 +105,12 @@ const IncomeTable: React.FC<Props> = ({ entries }) => {
     data: sortedEntries,
     columns,
     state: {
-      globalFilter,
       columnFilters,
       sorting,
       rowSelection,
       columnVisibility,
     },
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
@@ -104,34 +120,40 @@ const IncomeTable: React.FC<Props> = ({ entries }) => {
     getPaginationRowModel: getPaginationRowModel(),
   });
 
-  // When entries change, jump to first page so newest is visible
   useEffect(() => {
-    // defensive: table might be undefined during SSR
-    try {
-      table.setPageIndex(0);
-    } catch (e) {
-      /* ignore */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    table.setPageIndex(0);
   }, [entries?.length]);
 
   return (
-    <div className="flex flex-col overflow-hidden w-full rounded-md">
-      {/* Column selector (hidden on small by CSS in ColumnSelector) */}
-      <div className="hidden md:block">
+    <div
+      className="
+        w-full rounded-xl border
+        border-gray-200 dark:border-gray-700
+        bg-white dark:bg-gray-900
+        shadow-sm
+      "
+    >
+      {/* Column selector */}
+      <div className="px-4 pt-4 hidden md:block">
         <ColumnSelector table={table} />
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto w-full border border-gray-300 rounded-lg dark:border-gray-700">
-        <table className="w-full table-auto border-collapse">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
           <TableHeader table={table} />
           <TableBody table={table} />
         </table>
       </div>
 
       {/* Pagination */}
-      <div className="mt-3">
+      <div
+        className="
+          border-t border-gray-200 dark:border-gray-700
+          bg-gray-50 dark:bg-gray-800
+          px-4 py-3
+        "
+      >
         <TablePagination table={table} />
       </div>
     </div>

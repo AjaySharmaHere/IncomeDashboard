@@ -1,14 +1,34 @@
 import React from "react";
 import { flexRender } from "@tanstack/react-table";
 
-interface Props { table: any }
+interface Props {
+  table: any;
+}
 
 const TableBody: React.FC<Props> = ({ table }) => (
-  <tbody>
+  <tbody
+    className="
+      divide-y divide-gray-200 dark:divide-gray-700
+      bg-white dark:bg-gray-900
+    "
+  >
     {table.getRowModel().rows.map((row: any) => (
-      <tr key={row.id} className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 dark:odd:bg-gray-900 dark:even:bg-gray-900">
+      <tr
+        key={row.id}
+        className="
+          hover:bg-gray-50 dark:hover:bg-gray-800
+          transition-colors
+        "
+      >
         {row.getVisibleCells().map((cell: any) => (
-          <td key={cell.id} className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200/70 dark:border-gray-700/60">
+          <td
+            key={cell.id}
+            className="
+              px-4 py-3 text-sm
+              text-gray-700 dark:text-gray-300
+              whitespace-nowrap
+            "
+          >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </td>
         ))}

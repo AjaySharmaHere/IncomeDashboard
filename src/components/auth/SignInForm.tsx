@@ -14,8 +14,8 @@ export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
-  const [email, setEmail] = useState("ajsharma.here@gmail.com");
-  const [password, setPassword] = useState("1234567");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -224,18 +224,11 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  {/* <button
-                    type="submit"
-                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
-                  >
-                    Sign in
-                  </button> */}
                   <button
                     type="submit"
-                    disabled={isLoading} // only while request is in progress
-                    className={`flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 ${
-                      isLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    disabled={isLoading}
+                    className={`flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                   >
                     {isLoading ? "Signing in..." : "Sign in"}
                   </button>
