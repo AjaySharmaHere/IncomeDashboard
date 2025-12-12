@@ -1,41 +1,63 @@
-import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
-import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
-import StatisticsChart from "../../components/ecommerce/StatisticsChart";
-import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
-import RecentOrders from "../../components/ecommerce/RecentOrders";
-import DemographicCard from "../../components/ecommerce/DemographicCard";
-import PageMeta from "../../components/common/PageMeta";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, getDocs } from "firebase/firestore";
+import { db, auth } from "../../firebase/firebase";
+
+import IncomeTable from "./IncomeTable/IncomeTable";
+import { IncomeEntry } from "./IncomeTable/types";
 
 export default function Home() {
+  const [entries, setEntries] = useState<IncomeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setEntries([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const snapshot = await getDocs(
+          collection(db, "users", user.uid, "income_entries")
+        );
+
+        const data: IncomeEntry[] = snapshot.docs.map((doc) => {
+          const d = doc.data() as any;
+
+          return {
+            productName: d.productName ?? "",
+            price: String(d.price ?? "0"),
+            date: d.date ?? "",
+            paymentMode: d.paymentMode ?? "",
+            status: d.status ?? "",
+            createdAt: d.createdAt,
+            agency: d.agency ?? [],
+            resourceLink: d.resourceLink ?? "",
+          };
+        });
+
+        setEntries(data);
+      } catch (error) {
+        console.error("Error fetching income entries:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center p-4">Loading...</div>;
+  }
+
   return (
-    <>
-      <PageMeta
-        title="React.js Ecommerce Dashboard | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js Ecommerce Dashboard page for TailAdmin - React.js Tailwind CSS Admin Dashboard Template"
-      />
-      <div className="grid grid-cols-12 gap-4 md:gap-6">
-        <div className="col-span-12 space-y-6 xl:col-span-7">
-          <EcommerceMetrics />
-
-          <MonthlySalesChart />
-        </div>
-
-        <div className="col-span-12 xl:col-span-5">
-          <MonthlyTarget />
-        </div>
-
-        <div className="col-span-12">
-          <StatisticsChart />
-        </div>
-
-        <div className="col-span-12 xl:col-span-5">
-          <DemographicCard />
-        </div>
-
-        <div className="col-span-12 xl:col-span-7">
-          <RecentOrders />
-        </div>
-      </div>
-    </>
+    <div className="min-h-screen px-5 dark:bg-gray-900">
+      <IncomeTable entries={entries} />
+    </div>
   );
 }
