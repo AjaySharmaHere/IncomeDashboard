@@ -15,7 +15,10 @@ export const incomeColumns: ColumnDef<IncomeEntry>[] = [
     footer: (info) =>
       `$${info.table
         .getFilteredRowModel()
-        .rows.reduce((sum, row) => sum + row.original.price, 0)}`,
+        .rows.reduce(
+          (sum, row) => sum + (Number(row.original.price) || 0),
+          0
+        )}`,
   },
   { header: "Date", accessorKey: "date" },
   { header: "Payment Mode", accessorKey: "paymentMode" },

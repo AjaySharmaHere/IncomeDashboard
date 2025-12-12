@@ -11,6 +11,7 @@ export interface IncomeEntry {
   productType?: string[];
   resourceLink?: string;
 }
+
 export interface Product {
   id: string;
   name?: string;

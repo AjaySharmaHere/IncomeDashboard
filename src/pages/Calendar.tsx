@@ -1,6 +1,6 @@
 const Calendar = () => {
   return (
-    <div>Calendar</div>
+    <div className="bg-blue-300 p-4">Calendar</div>
   )
 }
 
